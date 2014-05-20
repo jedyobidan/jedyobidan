@@ -13,7 +13,7 @@ import java.util.Queue;
 
 
 public class Stage {
-	protected List<Actor> actors;
+	protected volatile List<Actor> actors;
 	private Queue<Actor> remove;
 	private Queue<Actor> add;
 	private Display display;
