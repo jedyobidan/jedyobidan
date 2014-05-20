@@ -6,9 +6,9 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Server{
-	private boolean accept;
-	private volatile List<ClientAgent> clients;
-	public volatile List<Message> messages;
+	private volatile boolean accept;
+	private List<ClientAgent> clients;
+	public List<Message> messages;
 	private HashSet<MessageObserver> observers;
 	public Server() throws IOException{
 		clients = new CopyOnWriteArrayList<ClientAgent>();
@@ -70,7 +70,9 @@ public class Server{
 	public void close() throws IOException{
 		System.out.println("SERVER: Closed");
 		for(ClientAgent client: clients){
-			client.close();
+			if(client!=null){
+				client.close();
+			}
 		}
 	}
 	
@@ -103,7 +105,7 @@ public class Server{
 		private ObjectOutputStream out;
 		private ObjectInputStream in;
 		private Socket sock;
-		private boolean clientQuit;
+		private volatile boolean clientQuit;
 		public ClientAgent(Socket clientSocket, int clientID) throws IOException{
 			this.clientID = clientID;
 			this.sock = clientSocket;
