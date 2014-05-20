@@ -17,7 +17,7 @@ public class Server{
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
 				try {
-					close();
+					close(1);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -67,13 +67,18 @@ public class Server{
 		observers.remove(o);
 	}
 	
-	public void close() throws IOException{
-		System.out.println("SERVER: Closed");
+	public void close(int exitStatus) throws IOException{
 		for(ClientAgent client: clients){
-			if(client!=null){
+			if(client!=null && !client.closed){
+				client.sendMessage(new ServerQuit(0, exitStatus));
 				client.close();
 			}
 		}
+		System.out.println("SERVER: Closed");
+	}
+	
+	public void close() throws IOException{
+		close(0);
 	}
 	
 	private class ConnectionAccept implements Runnable{
@@ -106,6 +111,7 @@ public class Server{
 		private ObjectInputStream in;
 		private Socket sock;
 		private volatile boolean clientQuit;
+		private boolean closed;
 		public ClientAgent(Socket clientSocket, int clientID) throws IOException{
 			this.clientID = clientID;
 			this.sock = clientSocket;
@@ -119,30 +125,31 @@ public class Server{
 		public void run(){
 			try{
 				while(!clientQuit){
-					Message m;
-					if(clientQuit) break;
-					m = (Message) in.readObject();
+					Message m = (Message) in.readObject();
+					if(m.origin != clientID){
+						System.out.println("SERVER_WARN: Message origin= "+ m.origin + " does not match clientID=" + clientID);
+						continue;
+					}
+					if(m instanceof ClientQuit){
+						ClientQuit q = (ClientQuit) m;
+						clientQuit = true;
+						if(q.exitStatus!=0){
+							System.out.println("SERVER: ClientAgent_" + clientID + " closed unexpectedly (" + q.exitStatus + ")");
+						}
+						close();
+					}
 					messageRecieved(m);
 				}
-			}catch(EOFException e){
-				
-			}catch(SocketException e){
-				if(!clientQuit){
+			} catch(SocketException e){
+				if(!closed){
 					e.printStackTrace();
 				}
-			}catch(Exception e){
+			} catch(Exception e){
 				e.printStackTrace();
 			}
-			
-			clientQuit = true;
 			System.out.println("SERVER: ClientAgent_" + clientID + " quit");
 			clients.set(clientID-1, null);
 			clientQuit(this);
-			try {
-				close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
 		}
 		
 		public void sendMessage(Message m){
@@ -154,8 +161,8 @@ public class Server{
 			}
 		}
 		
-		public synchronized void close() throws IOException{
-			clientQuit = true;
+		public void close() throws IOException{
+			closed = true;
 			out.close();
 			in.close();
 			sock.close();

@@ -1,6 +1,5 @@
 package jedyobidan.net;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -14,33 +13,28 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class Client {
 	public volatile List<Message> messages;
 	private HashSet<MessageObserver> observers;
-	private ObjectInputStream in;
-	private ObjectOutputStream out;
-	private Socket socket;
+
+	
 	private int clientID;
 	private ServerAgent serverAgent;
 	
 	public Client(String serverIp, int port) throws UnknownHostException, IOException{
 		messages = new CopyOnWriteArrayList<Message>();
 		observers = new HashSet<MessageObserver>();
-		socket = new Socket(serverIp, port);
-		in = new ObjectInputStream(socket.getInputStream());
-		out = new ObjectOutputStream(socket.getOutputStream());
-		out.flush();
+		serverAgent = new ServerAgent(new Socket(serverIp, port));
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
 				try {
-					close();
+					if(!serverAgent.closed) close(1);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
 		});
-		new Thread(serverAgent = new ServerAgent()).start();
+		new Thread(serverAgent).start();
 	}
 	
-	public void messageRecieved(Message m){
-		
+	public void messageRecieved(Message m){		
 		if(m instanceof ClientInit){
 			clientID = ((ClientInit)m).clientID;
 			System.out.println("CLIENT: clientID=" + clientID);
@@ -52,15 +46,7 @@ public class Client {
 	}
 	
 	public void sendMessage(Message m) {
-		try {
-			if(m.origin != clientID || clientID == 0){
-				throw new SecurityException("Message origin does not match clientID");
-			}
-			out.writeObject(m);
-			out.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		serverAgent.sendMessage(m);
 	}
 	
 	public void addObserver(MessageObserver m){
@@ -72,10 +58,12 @@ public class Client {
 	}
 	
 	public void close() throws IOException{
-		in.close();
-		out.close();
-		socket.close();
-		serverAgent.open = false;
+		close(0);
+	}
+	
+	public void close(int exitStatus) throws IOException{
+		sendMessage(new ClientQuit(clientID, exitStatus));
+		serverAgent.close();
 		System.out.println("CLIENT: Closed");
 	}
 	
@@ -84,24 +72,60 @@ public class Client {
 	}
 	
 	private class ServerAgent implements Runnable{
-		boolean open = true;
+		private boolean serverQuit;
+		private boolean closed;
+		private ObjectInputStream in;
+		private ObjectOutputStream out;
+		private Socket socket;
+		public ServerAgent(Socket serverSocket) throws IOException{
+			this.socket = serverSocket;
+			this.out = new ObjectOutputStream(serverSocket.getOutputStream());
+			out.flush();
+			this.in = new ObjectInputStream(serverSocket.getInputStream());
+		}
 		@Override
 		public void run() {
 			try {
-				while(open){
+				while(!serverQuit){
 					Message m = (Message) in.readObject();
+					if(m instanceof ServerQuit){
+						ServerQuit q = (ServerQuit) m;
+						serverQuit = true;
+						if(q.exitStatus!=0){
+							System.out.println("CLIENT: ServerAgent closed unexpectedly (" + q.exitStatus + ")");
+						}
+						close();
+					}
 					messageRecieved(m);
 				}
-			}catch(EOFException e){
-				
-			}catch(SocketException e){
-				if(open){
+			} catch(SocketException e){
+				if(!closed){
 					e.printStackTrace();
 				}
-			} catch (Exception e){
+			}catch (Exception e){
 				e.printStackTrace();
 			}
+			closed = true;
 			System.out.println("CLIENT: ServerAgent quit");
+		}
+		
+		public void sendMessage(Message m){
+			try{
+				if(m.origin != clientID || clientID == 0){
+					throw new SecurityException("Message origin does not match clientID");
+				}
+				out.writeObject(m);
+				out.flush();
+			} catch (IOException e){
+				e.printStackTrace();
+			}
+		}
+		
+		public void close() throws IOException{
+			closed = true;
+			in.close();
+			out.close();
+			socket.close();
 		}
 	}
 

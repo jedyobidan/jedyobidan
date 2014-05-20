@@ -26,7 +26,7 @@ public class ChatClient extends Client {
 		while(scanner.hasNextLine()){
 			String line = scanner.nextLine();
 			if(line.equals("exit")){
-				client.close();
+				client.close(0);
 				break;
 			}
 			client.sendMessage(new ChatMessage(client.getClientID(), line));
