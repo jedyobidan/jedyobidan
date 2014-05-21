@@ -62,8 +62,10 @@ public class Client {
 	}
 	
 	public void close(int exitStatus) throws IOException{
-		sendMessage(new ClientQuit(clientID, exitStatus));
-		serverAgent.close();
+		if(!serverAgent.isClosed()){
+			sendMessage(new ClientQuit(clientID, exitStatus));
+			serverAgent.close();
+		}
 		System.out.println("CLIENT: Closed");
 	}
 	
@@ -127,6 +129,10 @@ public class Client {
 			in.close();
 			out.close();
 			socket.close();
+		}
+		
+		public boolean isClosed(){
+			return closed;
 		}
 	}
 
