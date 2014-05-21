@@ -8,4 +8,8 @@ public abstract class Message implements Serializable{
 	public Message(int origin){
 		this.origin = origin;
 	}
+	
+	public String toString(){
+		return origin + "::" + this.getClass().getSimpleName();
+	}
 }

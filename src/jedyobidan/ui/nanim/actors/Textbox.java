@@ -54,13 +54,17 @@ public class Textbox extends Actor{
 		cursor = 0;
 	}
 	
+	public void setText(String str){
+		text = new StringBuilder(str);
+		cursor = str.length();
+	}
+	
 	public void processInput(Controller c){
 		ListIterator<Point> mp = c.getMousePressed().listIterator();
 		while(mp.hasNext()){
 			Point p = mp.next();
 			if(new Rectangle(x,y,width,height).contains(p)){
 				focus = true;
-				mp.remove();
 			} else {
 				focus = false;
 			}

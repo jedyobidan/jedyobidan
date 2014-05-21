@@ -6,21 +6,22 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Client {
-	public volatile List<Message> messages;
-	private HashSet<MessageObserver> observers;
-
-	
+	private Set<MessageObserver> observers;
 	private int clientID;
 	private ServerAgent serverAgent;
 	
 	public Client(String serverIp, int port) throws UnknownHostException, IOException{
-		messages = new CopyOnWriteArrayList<Message>();
-		observers = new HashSet<MessageObserver>();
+		observers = Collections.newSetFromMap(new ConcurrentHashMap<MessageObserver, Boolean>());
+		System.out.println("CLIENT: Connecting to server at " + serverIp + ":" + port + "...");
 		serverAgent = new ServerAgent(new Socket(serverIp, port));
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
@@ -31,15 +32,14 @@ public class Client {
 				}
 			}
 		});
-		new Thread(serverAgent).start();
+		new Thread(serverAgent, "Server_Agent").start();
 	}
 	
-	public void messageRecieved(Message m){		
+	public void messageRecieved(Message m){	
 		if(m instanceof ClientInit){
 			clientID = ((ClientInit)m).clientID;
 			System.out.println("CLIENT: clientID=" + clientID);
 		}
-		messages.add(m);
 		for(MessageObserver o: observers){
 			o.messageRecieved(m);
 		}
@@ -82,6 +82,7 @@ public class Client {
 			this.out = new ObjectOutputStream(serverSocket.getOutputStream());
 			out.flush();
 			this.in = new ObjectInputStream(serverSocket.getInputStream());
+			System.out.println("CLIENT: Initialized ServerAgent");
 		}
 		@Override
 		public void run() {

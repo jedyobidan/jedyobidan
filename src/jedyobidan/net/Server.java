@@ -3,21 +3,25 @@ package jedyobidan.net;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Server{
-	private volatile boolean accept;
 	private List<ClientAgent> clients;
-	public List<Message> messages;
-	private HashSet<MessageObserver> observers;
+	private Set<MessageObserver> observers;
+	private List<String> log;
+	private ConnectionAccept acceptor;
+	private boolean closed;
+	protected boolean writeToLog;
 	public Server() throws IOException{
 		clients = new CopyOnWriteArrayList<ClientAgent>();
-		messages = new CopyOnWriteArrayList<Message>();
-		observers = new HashSet<MessageObserver>();
+		observers = Collections.newSetFromMap(new ConcurrentHashMap<MessageObserver, Boolean>());
+		log = new ArrayList<String>();
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
 				try {
-					close(1);
+					if(!closed) close(1);
+					if(writeToLog) writeLog("_serverlogs/" + System.currentTimeMillis() + ".log");
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -26,11 +30,11 @@ public class Server{
 	}
 	
 	public void acceptConnections(int port){
-		new Thread(new ConnectionAccept(port), "Connection_Accept").start();
+		new Thread(acceptor = new ConnectionAccept(port), "Connection_Accept").start();
 	}
 	
 	public void stopAccepting(){
-		accept = false;
+		acceptor.close();
 	}
 	
 	public void clientJoined(ClientAgent client){
@@ -42,19 +46,21 @@ public class Server{
 	}
 	
 	public synchronized void messageRecieved(Message m){
-		messages.add(m);
+		log.add("[RCVE] " + m);
 		for(MessageObserver o: observers){
 			o.messageRecieved(m);
 		}
 	}
 	
 	public void broadcastMessage(Message m){
+		log.add("[BCST] " + m);
 		for(ClientAgent client: clients){
 			if(client!=null) client.sendMessage(m);
 		}
 	}
 	
 	public void sendMessage(int clientID, Message m){
+		log.add("[SEND] " + m + " TO <" + clientID + ">");
 		ClientAgent c = clients.get(clientID-1);
 		if(c!= null) c.sendMessage(m);
 	}
@@ -68,6 +74,7 @@ public class Server{
 	}
 	
 	public void close(int exitStatus) throws IOException{
+		stopAccepting();
 		for(ClientAgent client: clients){
 			if(client!=null && !client.closed){
 				client.sendMessage(new ServerQuit(0, exitStatus));
@@ -75,30 +82,63 @@ public class Server{
 			}
 		}
 		System.out.println("SERVER: Closed");
+		closed = true;
 	}
 	
 	public void close() throws IOException{
 		close(0);
 	}
 	
+	public void writeLog(String file){
+		try {
+			File f = new File(file);
+			if(!f.getParentFile().exists()){
+				f.getParentFile().mkdirs();
+			}
+			PrintWriter writer = new PrintWriter(file);
+			for(String s: log){
+				writer.println(s);
+			}
+			writer.close();
+		} catch (FileNotFoundException e) {
+			System.err.println("ERROR: Failed to write logs");
+		}
+	}
+	
 	private class ConnectionAccept implements Runnable{
 		private int port;
+		private boolean accept;
+		private ServerSocket serverSock;
 		public ConnectionAccept(int port){
 			this.port = port;
 		}
 		@Override
 		public void run() {
 			try {
-				System.out.println("SERVER: Accepting connections...");
-				ServerSocket s = new ServerSocket(port);
+				System.out.println("SERVER: Accepting connections on port " + port + "...");
+				serverSock = new ServerSocket(port);
 				accept = true;
 				while(accept){
-					ClientAgent client = new ClientAgent(s.accept(), clients.size()+1);
+					ClientAgent client = new ClientAgent(serverSock.accept(), clients.size()+1);
 					clients.add(client);
 					clientJoined(client);
 					new Thread(client, "Client_Agent-" + clients.size()).start();
 				}
-				s.close();
+				serverSock.close();
+			} catch (SocketException e){
+				if(accept){
+					e.printStackTrace();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			System.out.println("SERVER: Not accepting connections");
+		}
+		
+		public void close(){
+			try {
+				accept = false;
+				serverSock.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -166,6 +206,10 @@ public class Server{
 			out.close();
 			in.close();
 			sock.close();
+		}
+		
+		public int getClientID(){
+			return clientID;
 		}
 		
 	}

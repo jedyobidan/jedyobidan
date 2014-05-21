@@ -30,7 +30,6 @@ public class ThreadFPSRunner implements StageRunner, Runnable{
 		display = d;
 		isRunning = true;
 		Thread t = new Thread(this);
-		t.setPriority(Thread.MAX_PRIORITY);
 		t.start();
 	}
 

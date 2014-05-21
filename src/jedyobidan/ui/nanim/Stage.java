@@ -10,20 +10,17 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class Stage {
 	protected volatile List<Actor> actors;
-	private Queue<Actor> remove;
-	private Queue<Actor> add;
 	private Display display;
 	protected BufferedImage bg;
 	protected Color bgColor;
 	protected boolean collisionDetection;
 	public Stage(Display d){
-		actors = new ArrayList<Actor>();
-		add = new LinkedList<Actor>();
-		remove = new LinkedList<Actor>();
+		actors = new CopyOnWriteArrayList<Actor>();
 		display = d;
 	}
 	public void processInput(Controller controller){
@@ -31,14 +28,12 @@ public class Stage {
 	}
 	
 	public void beforeStep(){
-		processAddRemove();
 		for(Actor a: actors){
 			a.beforeStep();
 		}
 	}
 	
 	public void onStep(){
-		processAddRemove();
 		for(Actor a: actors){
 			a.onStep();
 		}
@@ -46,7 +41,6 @@ public class Stage {
 	
 	public void resolveCollisions(){
 		if(collisionDetection){
-			processAddRemove();
 			HashSet<Collision> cs = new HashSet<Collision>();
 			for(Actor a: actors){
 				for(Actor b: actors){
@@ -66,21 +60,18 @@ public class Stage {
 	}
 	
 	public void afterStep(){
-		processAddRemove();
 		for(Actor a: actors){
 			a.afterStep();
 		}
 	}
 	
 	public void beforeRender(){
-		processAddRemove();
 		for(Actor a: actors){
 			a.beforeRender();
 		}
 	}
 	
 	public void render(Graphics2D g){
-		processAddRemove();
 		drawBackground(g);
 		ArrayList<Actor> actors = new ArrayList<Actor>(this.actors);
 		Collections.sort(actors, new Comparator<Actor>(){
@@ -107,19 +98,18 @@ public class Stage {
 	}
 	
 	public final void afterRender(){
-		processAddRemove();
 		for(Actor a: actors){
 			a.afterRender();
 		}
 	}
 	
 	public void addActor(Actor a){
-		add.add(a);
+		actors.add(a);
 		a.setStage(this);
 	}
 	
 	public void removeActor(Actor a){
-		remove.add(a);
+		actors.remove(a);
 		a.setStage(null);
 	}
 	
@@ -155,14 +145,5 @@ public class Stage {
 		return collisionDetection;
 	}
 	
-	private void processAddRemove(){
-		while(!add.isEmpty()){
-			actors.add(add.poll());
-		}
-		
-		while(!remove.isEmpty()){
-			actors.remove(remove.poll());
-		}
-	}
 	
 }
