@@ -113,7 +113,7 @@ public class Client {
 					}
 				}
 			} catch(SocketException e){
-				if(!closed){
+				if(!e.getMessage().toLowerCase().matches(".*connection.*reset.*")){
 					e.printStackTrace();
 				}
 			}catch (Exception e){

@@ -185,7 +185,7 @@ public class Server{
 					}
 				}
 			} catch(SocketException e){
-				if(!closed){
+				if(!e.toString().toLowerCase().matches(".*connection.*reset.*")){
 					e.printStackTrace();
 				}
 			} catch(Exception e){
