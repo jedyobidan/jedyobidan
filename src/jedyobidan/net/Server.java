@@ -19,12 +19,8 @@ public class Server{
 		log = new ArrayList<String>();
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
-				try {
-					if(!closed) close(1);
-					if(writeToLog) writeLog("_serverlogs/" + System.currentTimeMillis() + ".log");
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				if(writeToLog) 
+					writeLog("_serverlogs/" + System.currentTimeMillis() + ".log");
 			}
 		});
 	}

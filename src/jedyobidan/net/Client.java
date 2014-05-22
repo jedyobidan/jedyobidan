@@ -23,15 +23,6 @@ public class Client {
 		observers = Collections.newSetFromMap(new ConcurrentHashMap<MessageObserver, Boolean>());
 		System.out.println("CLIENT: Connecting to server at " + serverIp + ":" + port + "...");
 		serverAgent = new ServerAgent(new Socket(serverIp, port));
-		Runtime.getRuntime().addShutdownHook(new Thread(){
-			public void run(){
-				try {
-					if(!serverAgent.closed) close(1);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		});
 		new Thread(serverAgent, "Server_Agent").start();
 	}
 	
