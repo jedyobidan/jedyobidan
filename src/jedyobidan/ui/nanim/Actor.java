@@ -43,7 +43,7 @@ public abstract class Actor {
 	public Stage getStage(){
 		return stage;
 	}
-	void setStage(Stage s){
+	protected void setStage(Stage s){
 		stage = s;
 	}
 }

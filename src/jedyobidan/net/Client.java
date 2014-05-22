@@ -35,6 +35,10 @@ public class Client {
 		new Thread(serverAgent, "Server_Agent").start();
 	}
 	
+	public void serverClosed(){
+		
+	}
+	
 	public void messageRecieved(Message m){	
 		if(m instanceof ClientInit){
 			clientID = ((ClientInit)m).clientID;
@@ -101,9 +105,12 @@ public class Client {
 						if(q.exitStatus!=0){
 							System.out.println("CLIENT: ServerAgent closed unexpectedly (" + q.exitStatus + ")");
 						}
-						close();
 					}
-					messageRecieved(m);
+					try{
+						messageRecieved(m);
+					} catch (Exception e){
+						e.printStackTrace();
+					}
 				}
 			} catch(SocketException e){
 				if(!closed){
@@ -112,7 +119,12 @@ public class Client {
 			}catch (Exception e){
 				e.printStackTrace();
 			}
-			closed = true;
+			try {
+				close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			serverClosed();
 			System.out.println("CLIENT: ServerAgent quit");
 		}
 		
@@ -123,7 +135,7 @@ public class Client {
 				}
 				out.writeObject(m);
 				out.flush();
-			} catch (IOException e){
+			} catch (Exception e){
 				e.printStackTrace();
 			}
 		}

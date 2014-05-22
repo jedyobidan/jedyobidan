@@ -176,15 +176,24 @@ public class Server{
 						if(q.exitStatus!=0){
 							System.out.println("SERVER: ClientAgent_" + clientID + " closed unexpectedly (" + q.exitStatus + ")");
 						}
-						close();
+						
 					}
-					messageRecieved(m);
+					try{
+						messageRecieved(m);
+					} catch (Exception e){
+						e.printStackTrace();
+					}
 				}
 			} catch(SocketException e){
 				if(!closed){
 					e.printStackTrace();
 				}
 			} catch(Exception e){
+				e.printStackTrace();
+			}
+			try {
+				close();
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			System.out.println("SERVER: ClientAgent_" + clientID + " quit");
