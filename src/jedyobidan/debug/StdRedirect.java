@@ -40,7 +40,12 @@ public class StdRedirect {
 		}
 	}
 	
-	public static void redirectAll(){
-		redirectAll(new File("_consoleOutput/" + System.currentTimeMillis() + ".log"));
+	/*
+	 * If running in eclipse, this will still redirect all output
+	 * unless the eclipse42 env var is set in Run config.
+	 */
+	public static void redirectAllInJar(){
+		if(System.console() == null && System.getenv("eclipse42") != null)
+			redirectAll(new File("_consoleOutput/" + System.currentTimeMillis() + ".log"));
 	}
 }
