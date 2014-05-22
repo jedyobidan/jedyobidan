@@ -14,7 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class Stage {
-	protected volatile List<Actor> actors;
+	protected List<Actor> actors;
 	private Display display;
 	protected BufferedImage bg;
 	protected Color bgColor;

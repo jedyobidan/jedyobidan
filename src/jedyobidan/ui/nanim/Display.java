@@ -71,6 +71,7 @@ public final class Display extends JPanel{
 		Stage s = stage;
 		if(s == null) return;
 		s.processInput(controller);
+		controller.consumeAll();
 		s.beforeStep();
 		s.onStep();
 		s.resolveCollisions();

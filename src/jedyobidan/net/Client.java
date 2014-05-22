@@ -63,7 +63,11 @@ public class Client {
 	
 	public void close(int exitStatus) throws IOException{
 		if(!serverAgent.isClosed()){
-			sendMessage(new ClientQuit(clientID, exitStatus));
+			try{
+				sendMessage(new ClientQuit(clientID, exitStatus));
+			} catch (Exception e){
+				e.printStackTrace();
+			}
 			serverAgent.close();
 		}
 		System.out.println("CLIENT: Closed");
@@ -115,7 +119,7 @@ public class Client {
 		public void sendMessage(Message m){
 			try{
 				if(m.origin != clientID || clientID == 0){
-					throw new SecurityException("Message origin does not match clientID");
+					throw new SecurityException("Message origin(" + m.origin + ") does not match clientID(" + clientID + ")");
 				}
 				out.writeObject(m);
 				out.flush();
