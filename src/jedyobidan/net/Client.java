@@ -15,6 +15,7 @@ public class Client {
 	private Set<MessageObserver> observers;
 	private volatile int clientID;
 	private ServerAgent serverAgent;
+	protected String error;
 	
 	public Client(String serverIp, int port) throws UnknownHostException, IOException{
 		observers = Collections.newSetFromMap(new ConcurrentHashMap<MessageObserver, Boolean>());
@@ -106,8 +107,10 @@ public class Client {
 				if(!e.getMessage().toLowerCase().matches(".*connection.*reset.*")){
 					e.printStackTrace();
 				}
+				error = e.getLocalizedMessage();
 			}catch (Exception e){
 				e.printStackTrace();
+				error = e.getLocalizedMessage();
 			}
 			try {
 				close();

@@ -12,6 +12,7 @@ public class Server{
 	private List<String> log;
 	private ConnectionAccept acceptor;
 	protected boolean writeToLog;
+	protected String error;
 	public Server() throws IOException{
 		clients = new CopyOnWriteArrayList<ClientAgent>();
 		observers = Collections.newSetFromMap(new ConcurrentHashMap<MessageObserver, Boolean>());
@@ -186,8 +187,10 @@ public class Server{
 				if(!e.toString().toLowerCase().matches(".*connection.*reset.*")){
 					e.printStackTrace();
 				}
+				error = e.getLocalizedMessage();
 			} catch(Exception e){
 				e.printStackTrace();
+				error = e.getLocalizedMessage();
 			}
 			try {
 				close();
