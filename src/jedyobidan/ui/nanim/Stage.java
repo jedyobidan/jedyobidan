@@ -104,13 +104,16 @@ public class Stage {
 	}
 	
 	public void addActor(Actor a){
+		if(actors.contains(a)) return;
 		actors.add(a);
 		a.setStage(this);
 	}
 	
 	public void removeActor(Actor a){
-		actors.remove(a);
-		a.setStage(null);
+		while(actors.contains(a)){
+			actors.remove(a);
+			a.setStage(null);
+		}
 	}
 	
 	public Display getDisplay(){

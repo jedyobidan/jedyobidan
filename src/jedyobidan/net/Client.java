@@ -23,8 +23,8 @@ public class Client {
 	public Client(String serverIp, int port) throws UnknownHostException, IOException{
 		observers = Collections.newSetFromMap(new ConcurrentHashMap<MessageObserver, Boolean>());
 		System.out.println("CLIENT: Connecting to server at " + serverIp + ":" + port + "...");
-		Socket sock = new Socket(serverIp, port);
-		sock.connect(new InetSocketAddress(serverIp, port), 0);
+		Socket sock = new Socket();
+		sock.connect(new InetSocketAddress(serverIp, port), 2500);
 		serverAgent = new ServerAgent(sock);
 		new Thread(serverAgent, "Server_Agent").start();
 	}

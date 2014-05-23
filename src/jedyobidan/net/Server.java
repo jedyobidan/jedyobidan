@@ -115,10 +115,14 @@ public class Server{
 				serverSock = new ServerSocket(port);
 				accept = true;
 				while(accept){
-					ClientAgent client = new ClientAgent(serverSock.accept(), clients.size()+1);
-					clients.add(client);
-					clientJoined(client);
-					new Thread(client, "Client_Agent-" + clients.size()).start();
+					try{
+						ClientAgent client = new ClientAgent(serverSock.accept(), clients.size()+1);
+						clients.add(client);
+						clientJoined(client);
+						new Thread(client, "Client_Agent-" + clients.size()).start();
+					} catch (Exception e){
+						e.printStackTrace();
+					}
 				}
 				serverSock.close();
 			} catch (SocketException e){
