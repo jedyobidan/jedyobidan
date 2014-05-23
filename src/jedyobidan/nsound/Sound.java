@@ -2,7 +2,6 @@ package jedyobidan.nsound;
 
 import java.awt.event.ActionListener;
 import java.io.BufferedInputStream;
-import java.io.InputStream;
 
 import jedyobidan.io.IO;
 

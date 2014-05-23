@@ -11,7 +11,6 @@ import javax.swing.JFrame;
 
 import jedyobidan.ui.nanim.actors.FPSDisplay;
 import jedyobidan.ui.nanim.actors.FlyBanner;
-import jedyobidan.ui.nanim.actors.TextFlyBanner;
 
 
 public class Test0 {

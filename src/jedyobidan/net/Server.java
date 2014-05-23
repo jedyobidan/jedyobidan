@@ -11,7 +11,6 @@ public class Server{
 	private Set<MessageObserver> observers;
 	private List<String> log;
 	private ConnectionAccept acceptor;
-	private boolean closed;
 	protected boolean writeToLog;
 	public Server() throws IOException{
 		clients = new CopyOnWriteArrayList<ClientAgent>();
@@ -78,7 +77,6 @@ public class Server{
 			}
 		}
 		System.out.println("SERVER: Closed");
-		closed = true;
 	}
 	
 	public void close() throws IOException{
