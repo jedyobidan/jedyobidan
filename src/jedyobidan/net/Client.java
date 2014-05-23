@@ -3,6 +3,7 @@ package jedyobidan.net;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -16,13 +17,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Client {
 	private Set<MessageObserver> observers;
-	private int clientID;
+	private volatile int clientID;
 	private ServerAgent serverAgent;
 	
 	public Client(String serverIp, int port) throws UnknownHostException, IOException{
 		observers = Collections.newSetFromMap(new ConcurrentHashMap<MessageObserver, Boolean>());
 		System.out.println("CLIENT: Connecting to server at " + serverIp + ":" + port + "...");
-		serverAgent = new ServerAgent(new Socket(serverIp, port));
+		Socket sock = new Socket(serverIp, port);
+		sock.connect(new InetSocketAddress(serverIp, port), 0);
+		serverAgent = new ServerAgent(sock);
 		new Thread(serverAgent, "Server_Agent").start();
 	}
 	
