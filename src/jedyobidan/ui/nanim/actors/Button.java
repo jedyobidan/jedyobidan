@@ -20,6 +20,7 @@ public class Button extends Actor {
 	private Color bg, text;
 	private Command command;
 	private boolean hover;
+	private boolean visible = true;
 	
 	public Button(int x, int y, int width, int height, Font font, Color bg, Color text, String str, Command c){
 		this.x = x;
@@ -46,6 +47,7 @@ public class Button extends Actor {
 	}
 	
 	public void processInput(Controller c){
+		if(!visible) return;
 		ListIterator<Point> mp = c.getMousePressed().listIterator();
 		while(mp.hasNext()){
 			Point p = mp.next();
@@ -65,6 +67,7 @@ public class Button extends Actor {
 
 	@Override
 	public void render(Graphics2D g) {
+		if(!visible) return;
 		g.setColor(new Color(64,64,64));
 		g.drawRect(x, y, width, height);
 		Color c = bg;
@@ -85,5 +88,9 @@ public class Button extends Actor {
 	@Override
 	public Shape getHitbox() {
 		return null;
+	}
+	
+	public void setVisible(boolean visible){
+		this.visible = visible;
 	}
 }

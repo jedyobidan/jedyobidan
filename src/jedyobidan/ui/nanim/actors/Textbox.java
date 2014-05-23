@@ -21,6 +21,7 @@ public class Textbox extends Actor{
 	private int cursor;
 	private boolean focus;
 	private StringBuilder text;
+	private boolean visible = true;
 	
 	public Textbox(int x, int y, int width, int height, Font font, Color bg, Color textC){
 		this.x = x;
@@ -60,6 +61,7 @@ public class Textbox extends Actor{
 	}
 	
 	public void processInput(Controller c){
+		if(!visible) return;
 		ListIterator<Point> mp = c.getMousePressed().listIterator();
 		while(mp.hasNext()){
 			Point p = mp.next();
@@ -95,6 +97,7 @@ public class Textbox extends Actor{
 
 	@Override
 	public void render(Graphics2D g) {
+		if(!visible) return;
 		g.setColor(focus? bg.darker(): bg);
 		g.fillRect(x, y, width, height);
 		g.setFont(font);
@@ -111,6 +114,10 @@ public class Textbox extends Actor{
 	public Shape getHitbox() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public void setVisible(boolean visible){
+		this.visible = visible;
 	}
 
 }
