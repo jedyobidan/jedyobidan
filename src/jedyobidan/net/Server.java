@@ -120,7 +120,7 @@ public class Server{
 						clientJoined(client);
 						new Thread(client, "Client_Agent-" + clients.size()).start();
 					} catch (Exception e){
-						e.printStackTrace();
+						if(accept)e.printStackTrace();
 					}
 				}
 				serverSock.close();
@@ -175,7 +175,7 @@ public class Server{
 						if(q.exitStatus!=0){
 							System.out.println("SERVER: ClientAgent_" + clientID + " closed unexpectedly (" + q.exitStatus + ")");
 						}
-						
+						error = "Client Quit";
 					}
 					try{
 						messageRecieved(m);

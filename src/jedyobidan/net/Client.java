@@ -96,6 +96,7 @@ public class Client {
 						if(q.exitStatus!=0){
 							System.out.println("CLIENT: ServerAgent closed unexpectedly (" + q.exitStatus + ")");
 						}
+						error = "Server Quit";
 					}
 					try{
 						messageRecieved(m);
@@ -107,10 +108,10 @@ public class Client {
 				if(!e.getMessage().toLowerCase().matches(".*connection.*reset.*")){
 					e.printStackTrace();
 				}
-				error = e.getLocalizedMessage();
+				error = e.getMessage();
 			}catch (Exception e){
 				e.printStackTrace();
-				error = e.getLocalizedMessage();
+				error = e.getMessage();
 			}
 			try {
 				close();
