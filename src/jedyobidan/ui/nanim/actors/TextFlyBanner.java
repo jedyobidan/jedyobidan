@@ -15,7 +15,7 @@ public abstract class TextFlyBanner extends FlyBanner {
 	}
 	
 	public TextFlyBanner(float time, String text){
-		this(100, time, Font.decode(null).deriveFont(24f).deriveFont(Font.BOLD), text);
+		this(100, time, Font.decode(null).deriveFont(24f).deriveFont(Font.BOLD+Font.ITALIC), text);
 	}
 	
 	public void render(Graphics2D g){

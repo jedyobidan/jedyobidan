@@ -2,6 +2,7 @@ package jedyobidan.ui.nanim.actors;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
@@ -98,7 +99,7 @@ public class SlideSelector extends Actor {
 			return;
 		}
 		double dx = Math.signum(index * width - camX);
-		camX += dx*600*getStage().getDeltaSeconds();
+		camX += dx*800*getStage().getDeltaSeconds();
 		if(Math.signum(index * width - camX) * dx < 0){
 			camX = index*width;
 		}
@@ -123,8 +124,9 @@ public class SlideSelector extends Actor {
 		g.setClip(new Rectangle(x,y,width,height));
 		g.setFont(font);
 		g.setColor(text);
+		FontMetrics metrics = g.getFontMetrics();
 		for(int i = 0; i < options.size(); i++){
-			g.drawString(options.get(i), (int)(x+i*width-camX+2), y + g.getFontMetrics(font).getAscent());
+			g.drawString(options.get(i), (int)(x+i*width-camX+width/2-metrics.stringWidth(options.get(i))/2), y + g.getFontMetrics(font).getAscent());
 		}
 		g.setClip(null);
 	}

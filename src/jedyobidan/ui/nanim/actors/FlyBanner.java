@@ -13,11 +13,13 @@ public abstract class FlyBanner extends Actor{
 	private double timer;
 	private double dx;
 	private double dt;
+	private double crawlSpeed;
 	public FlyBanner(int height, float time){
 		zIndex = 500;
 		camX = 0;
 		timer = time;
 		dx = 2000;
+		crawlSpeed = 10 + 30/time;
 		this.height = height;
 	}
 	@Override
@@ -25,14 +27,15 @@ public abstract class FlyBanner extends Actor{
 		int width = getStage().getDisplay().getWidth();
 		camX += dx*getStage().getDeltaSeconds();
 		timer += dt*getStage().getDeltaSeconds();
-		if(camX > width && timer > 0){
-			camX = width;
-			dx = 0;
+		if(camX > width-crawlSpeed*timer/2 && dt == 0){
+			//Start the slow
+			camX = width-crawlSpeed*timer/2;
 			dt = -1;
-		} else if (camX == width && timer < 0){
+			dx = 25;
+		} else if(camX <= width*2 && timer < 0){
+			//stop the slow
 			dx = 2000;
-			dt = 0;
-		} else if (camX > width*2 && timer < 0){
+		} else if(camX > width*2 && timer < 0){
 			finish();
 			getStage().removeActor(this);
 		}
